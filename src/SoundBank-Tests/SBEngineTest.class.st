@@ -88,6 +88,24 @@ SBEngineTest >> tearDown [
 ]
 
 { #category : 'tests' }
+SBEngineTest >> testEventsPlayWhileTheirPosterIsBusy [
+	"Servers handle requests at low I/O priority; a busy request must not hold back its sounds."
+
+	| playedWhileBusy done |
+	engine start.
+	done := Semaphore new.
+	[
+		| start |
+		engine postNamed: 'ping'.
+		start := Time millisecondClockValue.
+		[ Time millisecondClockValue - start < 100 ] whileTrue.
+		playedWhileBusy := played size.
+		done signal ] forkAt: Processor lowIOPriority.
+	self deny: (done waitTimeoutMilliseconds: 2000).
+	self assert: playedWhileBusy equals: 1
+]
+
+{ #category : 'tests' }
 SBEngineTest >> testLoadBankKeepsTheCurrentBankOnFailure [
 
 	| bank |

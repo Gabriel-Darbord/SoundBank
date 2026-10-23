@@ -144,12 +144,12 @@ SBEngine >> server: anScsynthServer [
 
 { #category : 'running' }
 SBEngine >> start [
-	"Start the audio server, keep it supervised, and play posted events in a process above user priority, so sounds come while the image is busy with whatever triggered them."
+	"Start the audio server, keep it supervised, and play posted events in a process at I/O priority, so sounds come while the image is busy with whatever triggered them, even from a server's worker process. Playing only sends a few datagrams, so it never holds the processor for long."
 
 	server start.
 	server startSupervising.
 	self isRunning ifTrue: [ ^ self ].
-	player := [ [ self handle: pending next ] repeat ] forkAt: Processor userInterruptPriority named: 'SoundBank player'
+	player := [ [ self handle: pending next ] repeat ] forkAt: Processor highIOPriority named: 'SoundBank player'
 ]
 
 { #category : 'running' }
